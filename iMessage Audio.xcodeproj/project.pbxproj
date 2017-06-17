@@ -365,6 +365,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 2DHG29T27Y;
 				INFOPLIST_FILE = "iMessage Audio/Info.plist";
 				PRODUCT_BUNDLE_IDENTIFIER = "Student.iMessage-Audio";
@@ -378,6 +379,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 2DHG29T27Y;
 				INFOPLIST_FILE = "iMessage Audio/Info.plist";
 				PRODUCT_BUNDLE_IDENTIFIER = "Student.iMessage-Audio";
@@ -405,6 +407,7 @@
 				AA3AB41E1EDE23A3003085A3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		AA3AB4201EDE23A3003085A3 /* Build configuration list for PBXNativeTarget "iMessage Audio" */ = {
 			isa = XCConfigurationList;
@@ -413,6 +416,7 @@
 				AA3AB4221EDE23A3003085A3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

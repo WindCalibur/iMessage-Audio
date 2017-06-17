@@ -2,17 +2,45 @@
 //  MessagesViewController.swift
 //  MessagesExtension
 //
-//  Created by P.I 002 on 2017-05-30.
+//  Created by P.I 002(Bowen) on 2017-05-30.
 //  Copyright © 2017 P.I 002. All rights reserved.
 //
 
 import UIKit
+import AVFoundation
 import Messages
 
-class MessagesViewController: MSMessagesAppViewController {
+class MessagesViewController: MSMessagesAppViewController, AVAudioRecorderDelegate{
+    
+    var recordButton: UIButton!
+    
+    var recordingSession: AVAudioSession!
+    var whistleRecorder: AVAudioRecorder!
+    
+    var savedConversation: MSConversation?
+    var destinationURL: URL?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        recordingSession = AVAudioSession.sharedInstance()
+        
+        do {
+            try recordingSession.setCategory(AVAudioSessionCategoryPlayAndRecord)
+            try recordingSession.setActive(true)
+            recordingSession.requestRecordPermission() { [unowned self] allowed in
+                DispatchQueue.main.async {
+                    if allowed {
+                        self.loadRecordingUI()
+                    } else {
+                        self.loadFailUI()
+                    }
+                }
+            }
+        } catch {
+            self.loadFailUI()
+        }
+        
         // Do any additional setup after loading the view.
     }
     
@@ -24,6 +52,8 @@ class MessagesViewController: MSMessagesAppViewController {
     // MARK: - Conversation Handling
     
     override func willBecomeActive(with conversation: MSConversation) {
+        
+        savedConversation = conversation
         // Called when the extension is about to move from the inactive to active state.
         // This will happen when the extension is about to present UI.
         
@@ -68,5 +98,106 @@ class MessagesViewController: MSMessagesAppViewController {
     
         // Use this method to finalize any behaviors associated with the change in presentation style.
     }
+    
+    func loadRecordingUI() {
+        recordButton = UIButton()
+        recordButton.translatesAutoresizingMaskIntoConstraints = false
+        recordButton.setTitle("Tap to Record", for: .normal)
+        recordButton.titleLabel?.font = UIFont.preferredFont(forTextStyle: .title1)
+        recordButton.addTarget(self, action: #selector(recordTapped), for: .touchUpInside)
+        self.view.addSubview(recordButton)
+    }
+    
+    func finishRecording(success: Bool) {
+        view.backgroundColor = UIColor(red: 0, green: 0.6, blue: 0, alpha: 1)
+        
+        whistleRecorder.stop()
+        whistleRecorder = nil
+        
+        if success {
+            recordButton.setTitle("Tap to Re-record", for: .normal)
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .plain, target: self, action: #selector(nextTapped))
+            
+            if let conversation = savedConversation {
+                conversation.insertAttachment(destinationURL!, withAlternateFilename: nil, completionHandler: nil)
+                return
+            }
+            
+        
+        } else {
+            recordButton.setTitle("Tap to Record", for: .normal)
+            
+            let ac = UIAlertController(title: "Record failed", message: "There was a problem recording your whistle; please try again.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+        }
+    }
+    
+    func nextTapped() {
+        
+    }
+    
+    func recordTapped() {
+        if whistleRecorder == nil {
+            startRecording()
+        } else {
+            finishRecording(success: true)
+        }
+    }
+    
+    
+    
+    func loadFailUI() {
+        print("UI Failed")
+    }
+    
+    class func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDirectory = paths[0]
+        return documentsDirectory
+    }
+    
+    class func getWhistleURL() -> URL {
+        return getDocumentsDirectory().appendingPathComponent("whistle.m4a")
+    }
+
+    
+    func startRecording() {
+        // 1
+        view.backgroundColor = UIColor(red: 0.6, green: 0, blue: 0, alpha: 1)
+        
+        // 2
+        recordButton.setTitle("Tap to Stop", for: .normal)
+        
+        // 3
+        let audioURL = MessagesViewController.getWhistleURL()
+        print(audioURL.absoluteString)
+        destinationURL = audioURL
+        
+        // 4
+        let settings = [
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+            AVSampleRateKey: 12000,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+        ]
+        
+        do {
+            // 5
+            whistleRecorder = try AVAudioRecorder(url: audioURL, settings: settings)
+            whistleRecorder.delegate = self
+            whistleRecorder.record()
+        } catch {
+            finishRecording(success: false)
+        }
+    }
+    override func loadView() {
+        super.loadView()
+        view.backgroundColor = UIColor.gray
+    }
+
+    
+    
+    
 
 }
